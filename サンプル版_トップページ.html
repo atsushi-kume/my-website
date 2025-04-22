@@ -1,0 +1,43 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>リンクボタンの例（クリック無視対策版）</title>
+  <style>
+    .link-button {
+      display: inline-block;
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 16px;
+      background-color: #4CAF50;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .link-button:hover {
+      background-color: #45a049;
+    }
+  </style>
+  <script>
+    function openLink(url) {
+      window.open(url, '_blank');
+    }
+
+    window.onload = function () {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("auto") === "1") {
+        document.getElementById("btn1").click();
+      }
+    };
+  </script>
+</head>
+<body>
+  <h1>ページ移動ボタン</h1>
+
+  <div class="link-button" id="btn1" onclick="openLink('https://www.google.com')">Googleへ</div>
+  <div class="link-button" onclick="openLink('https://1drv.ms/x/c/e02f92fc673b2ff8/EfgvO2f8ki8ggOB1AAAAAAAB-WhfcaZemxBecWRbDlxl2A?e=0db9dP')">Excelファイルを開く</div>
+  <div class="link-button" onclick="openLink('https://onedrive.live.com/view.aspx?resid=YOUR_HTML_FILE_ID')">HTMLページを開く</div>
+
+</body>
+</html>

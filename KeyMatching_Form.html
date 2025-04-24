@@ -1,0 +1,21 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>KeyMatch 入力フォーム</title>
+</head>
+<body>
+  <h1>KeyMatch Webフォーム</h1>
+  <form id="matchForm">
+    <label>Record1 ファイル：<input type="file" id="file1" /></label><br />
+    <label>Record2 ファイル：<input type="file" id="file2" /></label><br />
+    <label>キー列（Record1）：<input type="text" id="key1" value="1" /></label><br />
+    <label>キー列（Record2）：<input type="text" id="key2" value="1" /></label><br />
+    <button type="submit">処理開始</button>
+  </form>
+
+  <div id="output"></div>
+
+  <script type="module" src="main.ts"></script>
+</body>
+</html>

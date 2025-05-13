@@ -1,0 +1,29 @@
+﻿document.addEventListener('DOMContentLoaded', function () {
+  const button = document.getElementById('ECnavi_Button'); // 既存のボタンのIDに合わせて変更してください
+
+  if (!button) {
+    console.warn('ボタンが見つかりませんでした');
+    return;
+  }
+
+  button.addEventListener('click', function () {
+    const baseURL = 'https://ecnavi.jp';
+    const relativePaths = [
+      '/research/chinju_lesson/',
+      '/vote/choice/',
+      '/contents/enquete_rally/',
+      '/mainichi_news/',
+      '/game/lottery/garapon/',
+      '/contents/doron/',
+      '/smile_project/click_fund/',
+      '/game/vegetable/',
+      '/contents/chirashi/#chirashi_title',
+      '/contents/divination/'
+    ];
+
+    relativePaths.forEach(path => {
+      const fullURL = baseURL + path;
+      window.open(fullURL, '_blank');
+    });
+  });
+});

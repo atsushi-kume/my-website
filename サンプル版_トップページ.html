@@ -31,6 +31,8 @@
       }
     };
   </script>
+  <!-- JSファイルをRaw URLから読み込む -->
+  <script src="https://raw.githubusercontent.com/atsushi-kume/my-website/main/openUrls.js"></script>
 </head>
 <body>
   <h1>ページ移動ボタン</h1>
@@ -38,6 +40,9 @@
   <div class="link-button" id="btn1" onclick="openLink('https://www.google.com')">Googleへ</div>
   <div class="link-button" onclick="openLink('https://1drv.ms/x/c/e02f92fc673b2ff8/EfgvO2f8ki8ggOB1AAAAAAAB-WhfcaZemxBecWRbDlxl2A?e=0db9dP')">Excelファイルを開く</div>
   <div class="link-button" onclick="openLink('https://onedrive.live.com/view.aspx?resid=YOUR_HTML_FILE_ID')">HTMLページを開く</div>
+
+  <!-- ✅ IDをECnavi_ButtonにすることでJSに連動 -->
+  <div class="link-button" id="ECnavi_Button">openUrls.js を実行</div>
 
 </body>
 </html>

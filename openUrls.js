@@ -1,5 +1,5 @@
 ﻿document.addEventListener('DOMContentLoaded', function () {
-  const button = document.getElementById('ECnavi_Button'); // 既存のボタンのIDに合わせて変更してください
+  const button = document.getElementById('ECnavi_Button'); // ボタンID
 
   if (!button) {
     console.warn('ボタンが見つかりませんでした');
@@ -21,9 +21,11 @@
       '/contents/divination/'
     ];
 
-    relativePaths.forEach(path => {
-      const fullURL = baseURL + path;
-      window.open(fullURL, '_blank');
+    relativePaths.forEach((path, index) => {
+      setTimeout(() => {
+        const fullURL = baseURL + path;
+        window.open(fullURL, '_blank');
+      }, index * 1000); // 1秒ずつ遅延
     });
   });
 });

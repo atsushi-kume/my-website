@@ -1,27 +1,26 @@
-﻿/// openUrls2.js
+﻿// openUrls2.js
 
 document.addEventListener("DOMContentLoaded", function() {
+  // ECnavi2_Buttonを取得
   const openUrlsButton = document.getElementById('ECnavi2_Button');
-  const openAllCheckbox = document.getElementById('openAllCheckbox'); // 今は使わないので無視OK
-
   if (!openUrlsButton) {
     console.warn('ECnavi2_Button が見つかりません');
     return;
   }
 
+  // ボタンクリックイベント
   openUrlsButton.addEventListener('click', () => {
-    const isOpenAll = openAllCheckbox ? openAllCheckbox.checked : false;
     const urlList = [];
 
-    // すべてのURLを取得
+    // すべての <a href=""> を取得
     document.querySelectorAll('a[href]').forEach(a => {
       const url = a.href;
-      if (isOpenAll || confirm(`${url} を開きますか？`)) {
+      if (confirm(`${url} を開きますか？`)) {
         urlList.push(url);
       }
     });
 
-    // ウィンドウごとに開く
+    // URLを新しいタブで開く
     urlList.forEach((url, index) => {
       setTimeout(() => {
         window.open(url, '_blank');
@@ -30,5 +29,5 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 
   // 初期化ログ
-  console.log('openUrls2.js がロードされ、イベントが設定されました');
+  console.log('✅ openUrls2.js がロードされ、ECnavi2_Button にイベントが設定されました');
 });

@@ -11,16 +11,16 @@ document.addEventListener("DOMContentLoaded", function() {
     return;
   }
 
-  // ✅ ここが抜けていた！クリックイベントの登録
+  // ボタンクリックイベント
   openUrlsButton.addEventListener('click', () => {
     console.log('✅ ボタンがクリックされました');
 
-    const isOpenAll = false;
+    const isOpenAll = false; // 必要に応じて true に
     const urlList = [garaponPage];
 
     document.querySelectorAll('a[href]').forEach(a => {
       const url = a.href;
-      if (url !== garaponPage) {
+      if (url !== garaponPage && url.startsWith('https://ecnavi.jp/ad/')) {
         console.log(`🔍 リンク候補: ${url}`);
         if (isOpenAll || confirm(`${url} を開きますか？`)) {
           urlList.push(url);
@@ -37,4 +37,7 @@ document.addEventListener("DOMContentLoaded", function() {
       }, index * 500);
     });
   });
+
+  console.log('openUrls2.js がロードされ、イベントが設定されました');
 });
+

@@ -40,4 +40,3 @@ document.addEventListener("DOMContentLoaded", function() {
 
   console.log('openUrls2.js がロードされ、イベントが設定されました');
 });
-

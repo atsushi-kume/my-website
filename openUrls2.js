@@ -1,4 +1,4 @@
-/ openUrls2.js
+// openUrls2.js
 
 document.addEventListener("DOMContentLoaded", function() {
   // GaraponページのURLを定義（1ページ目）
@@ -10,28 +10,31 @@ document.addEventListener("DOMContentLoaded", function() {
     console.warn('ECnavi2_Button が見つかりません');
     return;
   }
-// openUrls2.openUrlsButton.addEventListener('click', () => {
-  console.log('✅ ボタンがクリックされました');
 
-  const isOpenAll = false;
-  const urlList = [garaponPage];
+  // ✅ ここが抜けていた！クリックイベントの登録
+  openUrlsButton.addEventListener('click', () => {
+    console.log('✅ ボタンがクリックされました');
 
-  document.querySelectorAll('a[href]').forEach(a => {
-    const url = a.href;
-    if (url !== garaponPage) {
-      console.log(`🔍 リンク候補: ${url}`);
-      if (isOpenAll || confirm(`${url} を開きますか？`)) {
-        urlList.push(url);
+    const isOpenAll = false;
+    const urlList = [garaponPage];
+
+    document.querySelectorAll('a[href]').forEach(a => {
+      const url = a.href;
+      if (url !== garaponPage) {
+        console.log(`🔍 リンク候補: ${url}`);
+        if (isOpenAll || confirm(`${url} を開きますか？`)) {
+          urlList.push(url);
+        }
       }
-    }
-  });
+    });
 
-  console.log(`📦 開くURLリスト:`, urlList);
+    console.log(`📦 開くURLリスト:`, urlList);
 
-  urlList.forEach((url, index) => {
-    setTimeout(() => {
-      console.log(`🚀 開く: ${url}`);
-      window.open(url, '_blank');
-    }, index * 500);
+    urlList.forEach((url, index) => {
+      setTimeout(() => {
+        console.log(`🚀 開く: ${url}`);
+        window.open(url, '_blank');
+      }, index * 500);
+    });
   });
 });

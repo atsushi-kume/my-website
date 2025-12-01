@@ -1,0 +1,99 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>APIテストページ</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <!-- GitHub Pages 上のあなたの JS を読み込む -->
+    <script src="./api/graphToSheetJS.js"></script>
+    <script src="./api/toSheetJSJson.js"></script>
+
+    <style>
+        body { font-family: Consolas, monospace; padding: 20px; }
+        textarea, pre { width: 100%; height: 200px; }
+        input, button { margin: 5px 0; }
+    </style>
+</head>
+<body>
+
+<h2>共通ロジック テストページ</h2>
+
+<h3>① ローカルPC の Excel を読み込む</h3>
+<input type="file" id="fileInput" accept=".xlsx,.xls" />
+
+<hr>
+
+<h3>② OneDrive / Graph API の values を読み込む</h3>
+OneDrive API URL：  
+<input type="text" id="onedriveUrl" style="width:100%" placeholder="https://graph.microsoft.com/.../workbook/worksheets('Sheet1')/usedRange" />
+
+Access Token：  
+<input type="text" id="accessToken" style="width:100%" placeholder="Bearer Token" />
+
+<button id="loadGraphBtn">Graph API から読み込み</button>
+
+<hr>
+
+<h3>出力（JSON）</h3>
+<pre id="output"></pre>
+
+<script>
+//===========================================================
+// runCommonLogic（各JSから共通で呼ばれる）
+//===========================================================
+function runCommonLogic(json) {
+    document.getElementById("output").textContent =
+        JSON.stringify(json, null, 2);
+}
+
+//===========================================================
+// ローカルPC Excel 読み込み
+// （toSheetJSJson.js 内の処理を流用）
+//===========================================================
+document.getElementById("fileInput")
+    .addEventListener("change", async e => {
+
+        const file = e.target.files[0];
+        const data = await file.arrayBuffer();
+
+        const wb = XLSX.read(data);
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(ws, { defval: null });
+
+        runCommonLogic(json);
+    });
+
+
+//===========================================================
+// Graph API 読み込み
+// （toSheetJSJson.js 内の処理を流用）
+//===========================================================
+document.getElementById("loadGraphBtn")
+    .addEventListener("click", async () => {
+
+        const url = document.getElementById("onedriveUrl").value;
+        const token = document.getElementById("accessToken").value;
+
+        const res = await fetch(url, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        const data = await res.json();
+
+        if (!data.values) {
+            alert("Graph API の結果に values がありません。URL を確認してください。");
+            return;
+        }
+
+        const matrix = data.values;
+
+        // toSheetJSJson.js の関数を使用
+        const json = toSheetJSJson(matrix, false);
+
+        runCommonLogic(json);
+    });
+</script>
+
+</body>
+</html>

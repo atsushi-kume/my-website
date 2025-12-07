@@ -25,6 +25,9 @@
 <hr>
 
 <h3>② OneDrive / Graph API の values を読み込む</h3>
+
+<button onclick="openOneDrivePicker()">OneDrive から Excel を選択</button>
+
 OneDrive API URL：  
 <input type="text" id="onedriveUrl" style="width:100%" placeholder="https://graph.microsoft.com/.../workbook/worksheets('Sheet1')/usedRange" />
 
@@ -34,8 +37,6 @@ Access Token：
 <button id="loadGraphBtn">Graph API から読み込み</button>
 
 <hr>
-
-<button onclick="openOneDrivePicker()">OneDrive から Excel を選択</button>
 
 <h3>出力（JSON）</h3>
 <pre id="output"></pre>

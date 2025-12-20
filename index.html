@@ -1,8 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>リンクボタンの例（クリック無視対策版）</title>
+  <title>ページ移動ボタン</title>
+
   <style>
     .link-button {
       display: inline-block;
@@ -11,32 +12,58 @@
       font-size: 16px;
       background-color: #4CAF50;
       color: white;
-      text-decoration: none;
+      text-decoration: none; /* ← aタグ用 */
       border-radius: 5px;
       cursor: pointer;
     }
+
     .link-button:hover {
       background-color: #45a049;
     }
   </style>
 </head>
+
 <body>
   <h1>ページ移動ボタン</h1>
 
-  <div class="link-button" id="btn1" onclick="openLink('https://www.google.com')">Googleへ</div>
-  <div class="link-button" onclick="openLink('https://1drv.ms/x/c/e02f92fc673b2ff8/EfgvO2f8ki8ggOB1AAAAAAAB-WhfcaZemxBecWRbDlxl2A?e=0db9dP')">Excelファイルを開く</div>
-  <div class="link-button" onclick="openLink('https://onedrive.live.com/view.aspx?resid=YOUR_HTML_FILE_ID')">HTMLページを開く</div>
+  <!-- ▼ 同一タブでページ移動（相対パス） -->
+  <a class="link-button" href="./html/test_EXCELtoJSON.html">
+    test_EXCELtoJSONを開く
+  </a>
 
-  <div class="link-button" id="ECnavi_Button">openUrls.js を実行</div>
-  <div class="link-button" id="ECnavi2_Button">openUrls2.js を実行</div>
+  <!-- ▼ 既存の外部リンク（別タブ） -->
+  <div class="link-button"
+       onclick="openLink('https://www.google.com')">
+    Googleへ
+  </div>
 
+  <div class="link-button"
+       onclick="openLink('https://1drv.ms/x/c/e02f92fc673b2ff8/EfgvO2f8ki8ggOB1AAAAAAAB-WhfcaZemxBecWRbDlxl2A?e=0db9dP')">
+    Excelファイルを開く
+  </div>
+
+  <div class="link-button"
+       onclick="openLink('https://onedrive.live.com/view.aspx?resid=YOUR_HTML_FILE_ID')">
+    HTMLページを開く
+  </div>
+
+  <!-- ▼ JS 実行系ボタン -->
+  <div class="link-button" id="ECnavi_Button">
+    openUrls.js を実行
+  </div>
+
+  <div class="link-button" id="ECnavi2_Button">
+    openUrls2.js を実行
+  </div>
+
+  <!-- ▼ 別タブで開く共通関数 -->
   <script>
     function openLink(url) {
       window.open(url, '_blank');
     }
   </script>
 
-  <!-- ✅ JavaScriptはbodyの一番最後で読み込む -->
+  <!-- ▼ JavaScript は body の最後で読み込む -->
   <script src="https://atsushi-kume.github.io/my-website/openUrls.js"></script>
   <script src="https://atsushi-kume.github.io/my-website/openUrls2.js"></script>
 </body>

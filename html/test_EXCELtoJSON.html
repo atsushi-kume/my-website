@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>APIテストページ</title>
+
+    <!-- SheetJS -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-    <!-- GitHub Pages 上のあなたの JS を読み込む -->
+    <!-- 既存ロジック -->
     <script src="./api/graphToSheetJS.js"></script>
     <script src="./api/toSheetJSJson.js"></script>
 
@@ -13,6 +15,14 @@
         body { font-family: Consolas, monospace; padding: 20px; }
         textarea, pre { width: 100%; height: 200px; }
         input, button { margin: 5px 0; }
+        #picker-list li {
+            cursor: pointer;
+            list-style: none;
+            padding: 4px;
+        }
+        #picker-list li:hover {
+            background: #eee;
+        }
     </style>
 </head>
 <body>
@@ -27,18 +37,12 @@
 <h3>② OneDrive / Graph API の values を読み込む</h3>
 
 <p>
-    <button onclick="openOneDrivePicker()">OneDrive から Excel を選択</button>
+    <button id="openPickerBtn">OneDrive から Excel を選択</button>
 </p>
 
-<p>OneDrive API URL：</p>
-<input type="text" id="onedriveUrl" style="width:100%" placeholder="https://graph.microsoft.com/.../workbook/worksheets('Sheet1')/usedRange" />
+<!-- Picker 表示領域 -->
+<div id="picker"></div>
 
-<p>Access Token：</p>
-<input type="text" id="accessToken" style="width:100%" placeholder="Bearer Token" />
-
-<p>
-    <button id="loadGraphBtn">Graph API から読み込み</button>
-</p>
 <hr>
 
 <h3>出力（JSON）</h3>
@@ -46,7 +50,7 @@
 
 <script>
 //===========================================================
-// runCommonLogic（各JSから共通で呼ばれる）
+// 共通出力
 //===========================================================
 function runCommonLogic(json) {
     document.getElementById("output").textContent =
@@ -54,8 +58,7 @@ function runCommonLogic(json) {
 }
 
 //===========================================================
-// ローカルPC Excel 読み込み
-// （toSheetJSJson.js 内の処理を流用）
+// ローカル Excel
 //===========================================================
 document.getElementById("fileInput")
     .addEventListener("change", async e => {
@@ -69,35 +72,49 @@ document.getElementById("fileInput")
 
         runCommonLogic(json);
     });
+</script>
 
+<!-- =======================================================
+     Graph / Picker 系は module で分離
+======================================================= -->
+<script type="module">
+import { ensureGraphAuth } from "./api/authGraph.js";
+import { openPicker } from "./api/graphPicker.js";
 
-//===========================================================
-// Graph API 読み込み
-// （toSheetJSJson.js 内の処理を流用）
-//===========================================================
-document.getElementById("loadGraphBtn")
-    .addEventListener("click", async () => {
+// ボタン → Picker 起動
+document.getElementById("openPickerBtn")
+    .addEventListener("click", () => {
 
-        const url = document.getElementById("onedriveUrl").value;
-        const token = document.getElementById("accessToken").value;
+        const token = ensureGraphAuth();
+        if (!token) return;
 
-        const res = await fetch(url, {
-            headers: { "Authorization": `Bearer ${token}` }
+        openPicker(token, "picker", async (item) => {
+            // Excel ファイルを選択
+            console.log("選択:", item);
+
+            // ファイルを取得
+            const res = await fetch(
+                `https://graph.microsoft.com/v1.0/me/drive/items/${item.id}/content`,
+                {
+                    headers: { Authorization: "Bearer " + token }
+                }
+            );
+
+            const arrayBuffer = await res.arrayBuffer();
+
+            // SheetJS で読み込み
+            const wb = XLSX.read(arrayBuffer);
+            const ws = wb.Sheets[wb.SheetNames[0]];
+
+            const matrix = XLSX.utils.sheet_to_json(ws, {
+                header: 1,
+                defval: null
+            });
+
+            // 既存共通ロジックへ
+            const json = toSheetJSJson(matrix, false);
+            runCommonLogic(json);
         });
-
-        const data = await res.json();
-
-        if (!data.values) {
-            alert("Graph API の結果に values がありません。URL を確認してください。");
-            return;
-        }
-
-        const matrix = data.values;
-
-        // toSheetJSJson.js の関数を使用
-        const json = toSheetJSJson(matrix, false);
-
-        runCommonLogic(json);
     });
 </script>
 

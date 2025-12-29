@@ -1,0 +1,253 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>けいさんドリル</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #f2f6ff;
+  margin: 0;
+  padding: 16px;
+  text-align: center;
+}
+
+h1 { font-size: 30px; }
+
+.question {
+  font-size: 40px;
+  margin: 20px 0;
+  position: relative;
+}
+
+.answer {
+  font-size: 36px;
+  width: 180px;
+  padding: 10px;
+  text-align: center;
+}
+
+button {
+  width: 100%;
+  max-width: 340px;
+  font-size: 26px;
+  padding: 18px;
+  margin: 10px auto;
+  border-radius: 16px;
+  border: none;
+  color: white;
+}
+
+.btn-generate { background: #4caf50; }
+.btn-check { background: #2196f3; }
+
+.result {
+  font-size: 28px;
+  min-height: 40px;
+  margin-top: 10px;
+}
+
+.settings {
+  background: white;
+  border-radius: 16px;
+  padding: 12px;
+  margin-top: 20px;
+}
+
+.settings label {
+  font-size: 18px;
+  display: block;
+  margin: 6px 0;
+}
+
+/* ===== 正解・不正解アニメ ===== */
+@keyframes correctBounce {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.2); }
+  60% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+.correct {
+  animation: correctBounce 0.4s ease;
+  background: #d7ffd9;
+  border-radius: 12px;
+}
+
+@keyframes shake {
+  0% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+  100% { transform: translateX(0); }
+}
+.wrong {
+  animation: shake 0.4s;
+  background: #ffd7d7;
+  border-radius: 12px;
+}
+
+/* ===== 星アニメ（CSSのみ） ===== */
+.star {
+  position: absolute;
+  font-size: 24px;
+  color: gold;
+  animation: flyStar 0.8s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes flyStar {
+  0% {
+    transform: translate(0, 0) scale(0.5);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--dx), var(--dy)) scale(1.2);
+    opacity: 0;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<h1>けいさんドリル</h1>
+
+<div id="questionBox" class="question">
+  <span id="left">0</span>
+  <span id="op">＋</span>
+  <span id="right">0</span> =
+</div>
+
+<input
+  id="answer"
+  class="answer"
+  type="number"
+  inputmode="numeric"
+  pattern="[0-9]*"
+  placeholder="こたえ"
+/>
+
+<button class="btn-generate" onclick="generateProblem()">もんだいをつくる</button>
+<button class="btn-check" onclick="checkAnswer()">こたえあわせ</button>
+
+<div id="result" class="result"></div>
+
+<div class="settings">
+  <h3>せってい</h3>
+
+  <label>
+    桁数：
+    <input id="digits" type="number" min="1" max="3" value="1">
+  </label>
+
+  <label><input type="checkbox" class="opCheck" value="＋" checked> たしざん</label>
+  <label><input type="checkbox" class="opCheck" value="－" checked> ひきざん</label>
+  <label><input type="checkbox" class="opCheck" value="×"> かけざん</label>
+  <label><input type="checkbox" class="opCheck" value="÷"> わりざん</label>
+</div>
+
+<script>
+let correctAnswer = 0;
+
+/* ===== 効果音 ===== */
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playSound(freq) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.frequency.value = freq;
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.4);
+  osc.stop(audioCtx.currentTime + 0.4);
+}
+function playCorrect() { playSound(880); }
+function playWrong() { playSound(220); }
+
+/* ===== 星を飛ばす ===== */
+function spawnStars() {
+  const box = document.getElementById("questionBox");
+
+  for (let i = 0; i < 6; i++) {
+    const star = document.createElement("div");
+    star.className = "star";
+    star.textContent = "★";
+
+    const dx = (Math.random() * 200 - 100) + "px";
+    const dy = (-Math.random() * 120 - 40) + "px";
+    star.style.setProperty("--dx", dx);
+    star.style.setProperty("--dy", dy);
+
+    box.appendChild(star);
+
+    setTimeout(() => star.remove(), 800);
+  }
+}
+
+/* ===== 問題生成 ===== */
+function generateProblem() {
+  const digits = Number(document.getElementById("digits").value) || 1;
+  const max = Math.pow(10, digits) - 1;
+
+  const ops = [...document.querySelectorAll(".opCheck:checked")]
+              .map(el => el.value);
+
+  if (ops.length === 0) {
+    alert("えんざんをえらんでね");
+    return;
+  }
+
+  let left, right, op, result;
+
+  op = ops[Math.floor(Math.random() * ops.length)];
+
+  if (op === "÷") {
+    right = Math.floor(Math.random() * max) + 1;
+    result = Math.floor(Math.random() * max) + 1;
+    left = right * result;
+  } else {
+    left = Math.floor(Math.random() * max) + 1;
+    right = Math.floor(Math.random() * max) + 1;
+    if (op === "－" && left < right) [left, right] = [right, right = left][0];
+    if (op === "＋") result = left + right;
+    if (op === "－") result = left - right;
+    if (op === "×") result = left * right;
+  }
+
+  document.getElementById("left").textContent = left;
+  document.getElementById("right").textContent = right;
+  document.getElementById("op").textContent = op;
+  document.getElementById("answer").value = "";
+  document.getElementById("result").textContent = "";
+
+  correctAnswer = result;
+}
+
+/* ===== 答え合わせ ===== */
+function checkAnswer() {
+  const user = Number(document.getElementById("answer").value);
+  const box = document.getElementById("questionBox");
+  const resultEl = document.getElementById("result");
+
+  box.classList.remove("correct", "wrong");
+  void box.offsetWidth;
+
+  if (user === correctAnswer) {
+    resultEl.textContent = "🎉 せいかい！";
+    box.classList.add("correct");
+    playCorrect();
+    spawnStars();
+  } else {
+    resultEl.textContent = "❌ ちがうよ… こたえは " + correctAnswer;
+    box.classList.add("wrong");
+    playWrong();
+  }
+}
+</script>
+
+</body>
+</html>

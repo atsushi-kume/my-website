@@ -1,8 +1,7 @@
 function getzipmain()
 // geoApi.js
-import { ZipToAddress } from "./zipToAddress.js";
-import { AddressToZip } from "./addressToZip.js";
-
+import { ZipToAddress } from "../services/zipToAddress.js";
+import { AddressToZip } from "../services/addressToZip.js";
 export const GeoApi = {
   /**
    * 入力値に応じて処理振り分け

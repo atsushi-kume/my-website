@@ -1,14 +1,23 @@
 function getzipmain()
-const GeoApi = {
-  // 1. 郵便番号 → 住所
-  async getAddressByPostal(zip) {
-    const code = zip.replace('-', ''); // ハイフン除去
-    const url = `https://heartrails.com{code}`;
-    return this._fetch(url);
-  },
+// geoApi.js
+import { ZipToAddress } from "./zipToAddress.js";
+import { AddressToZip } from "./addressToZip.js";
 
-  // 2. 住所 → 郵便番号
-  async getPostalByAddress(pref, city) {
-    const url = `https://heartrails.com{encodeURIComponent(pref)}&city=${encodeURIComponent(city)}`;
-    return this._fetch(url);
-  },
+export const GeoApi = {
+  /**
+   * 入力値に応じて処理振り分け
+   */
+  async execute(input) {
+    // 郵便番号っぽい場合
+    if (typeof input === "string" && /^\d{3}-?\d{4}$/.test(input)) {
+      return ZipToAddress.fetch(input);
+    }
+
+    // 住所オブジェクトの場合
+    if (typeof input === "object") {
+      return AddressToZip.fetch(input.pref, input.city, input.town);
+    }
+
+    throw new Error("入力形式が不正です");
+  }
+};

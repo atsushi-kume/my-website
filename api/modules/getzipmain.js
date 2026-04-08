@@ -1,4 +1,4 @@
-function getzipmain()
+function getzipmain(input)
 // geoApi.js
 import { ZipToAddress } from "../services/zipToAddress.js";
 import { AddressToZip } from "../services/addressToZip.js";

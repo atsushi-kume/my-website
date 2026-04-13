@@ -1,1 +1,122 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>APIテストページ</title>
 
+    <!-- SheetJS -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <!-- 既存ロジック -->
+    <script src="./api/graphToSheetJS.js"></script>
+    <script src="./api/toSheetJSJson.js"></script>
+
+    <style>
+        body { font-family: Consolas, monospace; padding: 20px; }
+        textarea, pre { width: 100%; height: 200px; }
+        input, button { margin: 5px 0; }
+        #picker-list li {
+            cursor: pointer;
+            list-style: none;
+            padding: 4px;
+        }
+        #picker-list li:hover {
+            background: #eee;
+        }
+    </style>
+</head>
+<body>
+
+<h2>共通ロジック テストページ</h2>
+
+<h3>① ローカルPC の Excel を読み込む</h3>
+<input type="file" id="fileInput" accept=".xlsx,.xls" />
+
+<hr>
+
+<h3>② OneDrive / Graph API の values を読み込む</h3>
+
+<p>
+    <button id="openPickerBtn">OneDrive から Excel を選択</button>
+</p>
+
+<!-- Picker 表示領域 -->
+<div id="picker"></div>
+
+<hr>
+
+<h3>出力（JSON）</h3>
+<pre id="output"></pre>
+
+<script>
+//===========================================================
+// 共通出力
+//===========================================================
+function runCommonLogic(json) {
+    document.getElementById("output").textContent =
+        JSON.stringify(json, null, 2);
+}
+
+//===========================================================
+// ローカル Excel
+//===========================================================
+document.getElementById("fileInput")
+    .addEventListener("change", async e => {
+
+        const file = e.target.files[0];
+        const data = await file.arrayBuffer();
+
+        const wb = XLSX.read(data);
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(ws, { defval: null });
+
+        runCommonLogic(json);
+    });
+</script>
+
+<!-- =======================================================
+     Graph / Picker 系は module で分離
+======================================================= -->
+<script type="module">
+import { ensureGraphAuth } from "./api/authGraph.js";
+import { openPicker } from "./api/graphPicker.js";
+
+// ボタン → Picker 起動
+document.getElementById("openPickerBtn")
+    .addEventListener("click", () => {
+
+        const token = ensureGraphAuth();
+        if (!token) return;
+
+        openPicker(token, "picker", async (item) => {
+            // Excel ファイルを選択
+            console.log("選択:", item);
+
+            // ファイルを取得
+            const res = await fetch(
+                `https://graph.microsoft.com/v1.0/me/drive/items/${item.id}/content`,
+                {
+                    headers: { Authorization: "Bearer " + token }
+                }
+            );
+
+            const arrayBuffer = await res.arrayBuffer();
+
+            // SheetJS で読み込み
+            const wb = XLSX.read(arrayBuffer);
+            const ws = wb.Sheets[wb.SheetNames[0]];
+
+            const matrix = XLSX.utils.sheet_to_json(ws, {
+                header: 1,
+                defval: null
+            });
+
+            // 既存共通ロジックへ
+            const json = toSheetJSJson(matrix, false);
+            runCommonLogic(json);
+        });
+    });
+</script>
+
+</body>
+</html>

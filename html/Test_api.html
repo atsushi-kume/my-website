@@ -29,12 +29,12 @@
 
 <h2>共通ロジック テストページ</h2>
 
-<h3>① ローカルPC の Excel を読み込む</h3>
-<input type="file" id="fileInput" accept=".xlsx,.xls" />
+<h3> 郵便番号入力領域</h3>
+<input type=" text" id=" zipInput" />
 
 <hr>
 
-<h3>② OneDrive / Graph API の values を読み込む</h3>
+<h3>② 空きラベル</h3>
 
 <p>
     <button id="openPickerBtn">OneDrive から Excel を選択</button>
@@ -58,20 +58,24 @@ function runCommonLogic(json) {
 }
 
 //===========================================================
-// ローカル Excel
+// 入力値処理
 //===========================================================
-document.getElementById("fileInput")
-    .addEventListener("change", async e => {
+document.getElementById("zipInput")
+        .addEventListener("click", () => {
+  
+        //const file = e.target.files[0];
+        //const data = await file.arrayBuffer();
 
-        const file = e.target.files[0];
-        const data = await file.arrayBuffer();
+        //const wb = XLSX.read(data);
+        //const ws = wb.Sheets[wb.SheetNames[0]];
+        //const json = XLSX.utils.sheet_to_json(ws, { defval: null });
 
-        const wb = XLSX.read(data);
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json(ws, { defval: null });
-
-        runCommonLogic(json);
-    });
+        //runCommonLogic(json);
+    //});
+    // 既存共通ロジックへ
+            const json = toSheetJSJson(matrix, false);
+            runCommonLogic(json);
+        });
 </script>
 
 <!-- =======================================================

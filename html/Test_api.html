@@ -48,19 +48,25 @@ function runCommonLogic(json) {
 }
 </script>
 
-//===========================================================
-// 入力値処理
-//===========================================================
 <script type="module">
-// パスのクォート閉じ忘れを修正
+//===========================================================
+// 入力値処理（モジュール）
+//===========================================================
 import { testModule } from "./api/modules/getzipmain.js";
 
-document.getElementById("callapi").addEventListener("click", () => {
-    // getElementByIdで取得するか、id名のまま参照（※）
+document.getElementById("callapi").addEventListener("click", async () => {
     const input = document.getElementById("zipInput").value;
     
-    // APIは通常非同期(async)なので、Promiseが返る場合はawait等が必要です
-    document.getElementById("output").textContent = testModule(input);
+    try {
+        // APIが非同期(Promiseを返す)と想定されるためawaitを推奨
+        // testModuleが同期関数の場合はawaitを外してください
+        const result = await testModule(input);
+        document.getElementById("output").textContent = 
+            (typeof result === 'object') ? JSON.stringify(result, null, 2) : result;
+    } catch (error) {
+        console.error("エラーが発生しました:", error);
+        document.getElementById("output").textContent = "Error: " + error.message;
+    }
 });
 </script>
 

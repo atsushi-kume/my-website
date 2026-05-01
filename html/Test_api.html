@@ -29,15 +29,13 @@
 
 <h2>共通ロジック テストページ</h2>
 
-<h3> 郵便番号入力領域</h3>
-<input type=" text" id=" zipInput" />
-<button=" button" id="callapi" 
- onclick="./api/modules/getzipmain.js(" zipInput")">検索</button>
+<h3>郵便番号入力領域</h3>
+<input type="text" id="zipInput" />
+<button type="button" id="callapi">検索</button>
 
 <hr>
 
 <h2>出力（JSON）</h2>
-
 <pre id="output"></pre>
 
 <script>
@@ -48,26 +46,22 @@ function runCommonLogic(json) {
     document.getElementById("output").textContent =
         JSON.stringify(json, null, 2);
 }
+</script>
 
 //===========================================================
 // 入力値処理
 //===========================================================
-document.getElementById("zipInput")
-        .addEventListener("click", () => {
-  
-        //const file = e.target.files[0];
-        //const data = await file.arrayBuffer();
+<script type="module">
+// パスのクォート閉じ忘れを修正
+import { testModule } from "./api/modules/getzipmain.js";
 
-        //const wb = XLSX.read(data);
-        //const ws = wb.Sheets[wb.SheetNames[0]];
-        //const json = XLSX.utils.sheet_to_json(ws, { defval: null });
-
-        //runCommonLogic(json);
-    //});
-    // 既存共通ロジックへ
-            const json = toSheetJSJson(matrix, false);
-            runCommonLogic(json);
-        });
+document.getElementById("callapi").addEventListener("click", () => {
+    // getElementByIdで取得するか、id名のまま参照（※）
+    const input = document.getElementById("zipInput").value;
+    
+    // APIは通常非同期(async)なので、Promiseが返る場合はawait等が必要です
+    document.getElementById("output").textContent = testModule(input);
+});
 </script>
 
 <!-- =======================================================

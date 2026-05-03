@@ -1,22 +1,17 @@
-function getzipmain(input)
-// geoApi.js
+// 1. importは必ず一番上に書く
 import { ZipToAddress } from "../services/zipToAddress.js";
 import { AddressToZip } from "../services/addressToZip.js";
+
+// 2. 不要な function 宣言（1行目）を消すか、正しく閉じる
 export const GeoApi = {
-  /**
-   * 入力値に応じて処理振り分け
-   */
   async execute(input) {
-    // 郵便番号っぽい場合
+    // 郵便番号(数値)か住所(オブジェクト)かで振り分け
     if (typeof input === "string" && /^\d{3}-?\d{4}$/.test(input)) {
-      return ZipToAddress.fetch(input);
+      return await ZipToAddress.fetch(input);
     }
-
-    // 住所オブジェクトの場合
     if (typeof input === "object") {
-      return AddressToZip.fetch(input.pref, input.city, input.town);
+      return await AddressToZip.fetch(input.pref, input.city, input.town);
     }
-
     throw new Error("入力形式が不正です");
   }
 };

@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <title>APIテストページ</title>
 
-    <!-- SheetJS -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    //<!-- SheetJS -->
+    //<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-    <!-- 既存ロジック -->
-    <script src="./api/graphToSheetJS.js"></script>
-    <script src="./api/toSheetJSJson.js"></script>
+    //<!-- 既存ロジック -->
+    //<script src="./api/graphToSheetJS.js"></script>
+    //<script src="./api/toSheetJSJson.js"></script>
 
     <style>
         body { font-family: Consolas, monospace; padding: 20px; }
@@ -76,50 +76,6 @@ document.getElementById("callapi").addEventListener("click", async () => {
         output.textContent = "Error: " + error.message;
     }
 });
-</script>
-
-<!-- =======================================================
-     Graph / Picker 系は module で分離
-======================================================= -->
-<script type="module">
-import { ensureGraphAuth } from "./api/authGraph.js";
-import { openPicker } from "./api/graphPicker.js";
-
-// ボタン → Picker 起動
-document.getElementById("openPickerBtn")
-    .addEventListener("click", () => {
-
-        const token = ensureGraphAuth();
-        if (!token) return;
-
-        openPicker(token, "picker", async (item) => {
-            // Excel ファイルを選択
-            console.log("選択:", item);
-
-            // ファイルを取得
-            const res = await fetch(
-                `https://graph.microsoft.com/v1.0/me/drive/items/${item.id}/content`,
-                {
-                    headers: { Authorization: "Bearer " + token }
-                }
-            );
-
-            const arrayBuffer = await res.arrayBuffer();
-
-            // SheetJS で読み込み
-            const wb = XLSX.read(arrayBuffer);
-            const ws = wb.Sheets[wb.SheetNames[0]];
-
-            const matrix = XLSX.utils.sheet_to_json(ws, {
-                header: 1,
-                defval: null
-            });
-
-            // 既存共通ロジックへ
-            const json = toSheetJSJson(matrix, false);
-            runCommonLogic(json);
-        });
-    });
 </script>
 
 </body>

@@ -56,6 +56,7 @@ import { testModule } from "./api/modules/getzipmain.js";
 
 document.getElementById("callapi").addEventListener("click", async () => {
     const input = document.getElementById("zipInput").value;
+    console.log("入力値:", input); // デバッグ用
     
     try {
         // APIが非同期(Promiseを返す)と想定されるためawaitを推奨
@@ -63,8 +64,10 @@ document.getElementById("callapi").addEventListener("click", async () => {
         const result = await testModule(input);
         document.getElementById("output").textContent = 
             (typeof result === 'object') ? JSON.stringify(result, null, 2) : result;
+        console.log("API結果:", result); // デバッグ用
     } catch (error) {
         console.error("エラーが発生しました:", error);
+        console.error("エラー詳細:", error);
         document.getElementById("output").textContent = "Error: " + error.message;
     }
 });

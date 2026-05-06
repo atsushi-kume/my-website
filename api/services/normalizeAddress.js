@@ -1,24 +1,37 @@
-// HeartRails Geo を使って住所を正規化
 export const NormalizeAddress = {
   async fetch(address) {
+
     const url = `https://geoapi.heartrails.com/api/json?method=search&keyword=${encodeURIComponent(address)}`;
+
+    console.log("API URL:", url);
 
     const res = await fetch(url);
     const data = await res.json();
 
-    if (!data.response || !data.response.location || data.response.location.length === 0) {
-      throw new Error("住所の正規化に失敗");
+    console.log("APIレスポンス:", data);
+
+    // 防御強化
+    if (!data || !data.response) {
+      throw new Error("APIレスポンス異常");
     }
 
-    const loc = data.response.location[0];
+    const list = data.response.location;
 
-    // ログ確認用
-    console.log("正規化結果:", loc);
+    if (!list || list.length === 0) {
+      throw new Error("該当住所なし（keyword検索ヒットなし）");
+    }
+
+    const loc = list[0];
+
+    // null防御
+    if (!loc.prefecture || !loc.city) {
+      throw new Error("住所データ不完全");
+    }
 
     return {
       pref: loc.prefecture,
       city: loc.city,
-      town: loc.town
+      town: loc.town || ""
     };
   }
 };

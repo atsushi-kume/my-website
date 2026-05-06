@@ -4,7 +4,7 @@ export const NormalizeAddress = {
     // 数字以降削除（精度UP）
     address = address.replace(/[0-9０-９\-－].*$/, "");
 
-    const url = `https://geoapi.heartrails.com/api/json?method=suggest&keyword=${encodeURIComponent(address)}`;
+    const url = `https://geoapi.heartrails.com/api/json?method=suggest&keyword=${encodeURIComponent(address)}&matching=like`;
 
     console.log("API URL:", url);
 

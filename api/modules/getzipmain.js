@@ -1,10 +1,11 @@
 import { ZipToAddress } from "../services/ZipToAddress.js";
 import { AddressToZip } from "../services/AddressToZip.js";
+import { NormalizeAddress } from "../services/normalizeAddress.js";
 
 export const GeoApi = {
   async execute(input) {
 
-    // 全角→半角変換
+    // 全角→半角
     if (typeof input === "string") {
       input = input.replace(/[０-９]/g, s =>
         String.fromCharCode(s.charCodeAt(0) - 0xFEE0)
@@ -16,7 +17,18 @@ export const GeoApi = {
       return await ZipToAddress.fetch(input);
     }
 
-    // 住所
+    // 住所（文字列 → 正規化API）
+    if (typeof input === "string") {
+      const parsed = await NormalizeAddress.fetch(input);
+
+      return await AddressToZip.fetch(
+        parsed.pref,
+        parsed.city,
+        parsed.town
+      );
+    }
+
+    // object入力
     if (
       typeof input === "object" &&
       input !== null &&

@@ -1,5 +1,5 @@
-import { ZipToAddress } from "../services/zipToAddress.js";
-import { AddressToZip } from "../services/addressToZip.js";
+import { ZipToAddress } from "../services/ZipToAddress.js";
+import { AddressToZip } from "../services/AddressToZip.js";
 
 export const GeoApi = {
   async execute(input) {

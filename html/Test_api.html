@@ -45,34 +45,41 @@
 function runCommonLogic(json) {
     document.getElementById("output").textContent =
         JSON.stringify(json, null, 2);
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>APIテストページ</title>
+
+    <!-- コメントはこれだけにする -->
+</head>
+<body>
+
+<h2>共通ロジック テストページ</h2>
+
+<input type="text" id="zipInput" />
+<button type="button" id="callapi">検索</button>
+
+<pre id="output"></pre>
+
+<script>
+function runCommonLogic(json) {
+    document.getElementById("output").textContent =
+        JSON.stringify(json, null, 2);
 }
 </script>
 
 <script type="module">
-//===========================================================
-// 入力値処理（モジュール）
-//===========================================================
-// 1. インポートする名前を 'GeoApi' に変更
-import { GeoApi } from "./api/modules/getzipmain.js";
+import { GeoApi } from "../api/modules/getzipmain.js";
 
-document.getElementById("callapi")..addEventListener("click", async () => {
+document.getElementById("callapi").addEventListener("click", async () => {
     const input = document.getElementById("zipInput").value.trim();
     const output = document.getElementById("output");
-    
-    console.log("入力値:", input);
 
     try {
-        // 2. testModule(input) ではなく GeoApi.execute(input) を実行
-        // ※ getzipmain.js の中身に合わせた呼び出し方に修正
         const result = await GeoApi.execute(input);
-        
-        console.log("API結果:", result);
-        
-        // 3. 共通ロジック関数へ渡す
         runCommonLogic(result);
-
     } catch (error) {
-        console.error("エラー詳細:", error);
         output.textContent = "Error: " + error.message;
     }
 });

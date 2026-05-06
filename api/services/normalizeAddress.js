@@ -1,7 +1,10 @@
 export const NormalizeAddress = {
   async fetch(address) {
 
-    const url = `https://geoapi.heartrails.com/api/json?method=search&keyword=${encodeURIComponent(address)}`;
+    // 数字以降削除（精度UP）
+    address = address.replace(/[0-9０-９\-－].*$/, "");
+
+    const url = `https://geoapi.heartrails.com/api/json?method=suggest&keyword=${encodeURIComponent(address)}`;
 
     console.log("API URL:", url);
 
@@ -10,7 +13,6 @@ export const NormalizeAddress = {
 
     console.log("APIレスポンス:", data);
 
-    // 防御強化
     if (!data || !data.response) {
       throw new Error("APIレスポンス異常");
     }
@@ -18,15 +20,10 @@ export const NormalizeAddress = {
     const list = data.response.location;
 
     if (!list || list.length === 0) {
-      throw new Error("該当住所なし（keyword検索ヒットなし）");
+      throw new Error("該当住所なし");
     }
 
     const loc = list[0];
-
-    // null防御
-    if (!loc.prefecture || !loc.city) {
-      throw new Error("住所データ不完全");
-    }
 
     return {
       pref: loc.prefecture,

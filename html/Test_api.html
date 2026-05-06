@@ -1,27 +1,93 @@
+```html
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<title>test</title>
+    <meta charset="UTF-8">
+    <title>APIテストページ</title>
+
+    <style>
+        body { font-family: Consolas, monospace; padding: 20px; }
+        textarea, pre { width: 100%; height: 200px; }
+        input, button { margin: 5px 0; }
+
+        #logOutput {
+            background: #111;
+            color: #0f0;
+            padding: 10px;
+            height: 200px;
+            overflow-y: auto;
+        }
+    </style>
 </head>
 <body>
 
-<input id="zipInput">
-<button id="callapi">実行</button>
+<h2>共通ロジック テストページ</h2>
+
+<h3>郵便番号入力領域</h3>
+<input type="text" id="zipInput" />
+<button type="button" id="callapi">検索</button>
+
+<hr>
+
+<h2>出力（JSON）</h2>
 <pre id="output"></pre>
 
+<h2>ログ出力</h2>
+<pre id="logOutput"></pre>
+
+<!-- logger（通常scriptで読み込む） -->
+<script src="../api/services/logger.js"></script>
+
+<script>
+//===========================================================
+// 共通出力
+//===========================================================
+function runCommonLogic(json) {
+    document.getElementById("output").textContent =
+        JSON.stringify(json, null, 2);
+}
+
+//===========================================================
+// ログ描画
+//===========================================================
+function renderLogs() {
+    document.getElementById("logOutput").textContent =
+        window.MyCustomLogger.getLogs();
+}
+</script>
+
 <script type="module">
+//===========================================================
+// モジュール読み込み
+//===========================================================
 import { GeoApi } from "../api/modules/getzipmain.js";
 
 document.getElementById("callapi").addEventListener("click", async () => {
-    const input = document.getElementById("zipInput").value;
+    const input = document.getElementById("zipInput").value.trim();
+    const output = document.getElementById("output");
 
-    const result = await GeoApi.execute(input);
-    document.getElementById("output").textContent =
-        JSON.stringify(result, null, 2);
+    // ログ初期化
+    window.MyCustomLogger.clearLogs();
+
+    console.log("入力値:", input);
+
+    try {
+        const result = await GeoApi.execute(input);
+
+        console.log("API結果:", result);
+
+        runCommonLogic(result);
+
+    } catch (error) {
+        console.error("エラー詳細:", error);
+        output.textContent = "Error: " + error.message;
+    }
+
+    // ログを画面に反映
+    renderLogs();
 });
 </script>
 
 </body>
 </html>
-</html>
+```

@@ -1,5 +1,10 @@
+// addressToZip.js
+
 export const AddressToZip = {
 
+  /**
+   * 正規化済み住所候補から最適な郵便番号を選択
+   */
   async fetch(pref, city, town = "", candidates = []) {
 
     console.log("AddressToZip入力:", {
@@ -8,52 +13,53 @@ export const AddressToZip = {
       town
     });
 
-    // 候補なし
+    // 候補無し
     if (!Array.isArray(candidates) || candidates.length === 0) {
+      console.log("候補なし");
       return null;
     }
 
-    // -----------------------------
-    // スコアリング
-    // -----------------------------
-    const scored = candidates.map(loc => {
+    console.log("候補一覧:", candidates);
 
-      let score = 0;
+    // 完全一致優先
+    let exact = candidates.find(loc =>
+      loc.prefecture === pref &&
+      loc.city === city &&
+      loc.town === town
+    );
 
-      // 完全一致
-      if (loc.town === town) score += 100;
+    if (exact) {
 
-      // 前方一致
-      else if (loc.town.startsWith(town)) score += 50;
-
-      // ビル減点
-      if (loc.town.includes("ビル")) score -= 30;
-
-      // 階数減点
-      if (/[0-9０-９]+階/.test(loc.town)) score -= 50;
+      console.log("完全一致:", exact);
 
       return {
-        score,
-        data: loc
+        pref: exact.prefecture,
+        city: exact.city,
+        town: exact.town,
+        postal: exact.postal
       };
-    });
-
-    // 最大スコア採用
-    scored.sort((a, b) => b.score - a.score);
-
-    const best = scored[0]?.data;
-
-    console.log("採用郵便番号:", best);
-
-    if (!best) {
-      return null;
     }
 
-    return {
-      pref: best.prefecture,
-      city: best.city,
-      town: best.town,
-      postal: best.postal
-    };
+    // 部分一致 fallback
+    let partial = candidates.find(loc =>
+      loc.prefecture === pref &&
+      loc.city === city
+    );
+
+    if (partial) {
+
+      console.log("部分一致:", partial);
+
+      return {
+        pref: partial.prefecture,
+        city: partial.city,
+        town: partial.town,
+        postal: partial.postal
+      };
+    }
+
+    console.log("一致候補なし");
+
+    return null;
   }
 };

@@ -1,45 +1,59 @@
-// addressToZip.js
 export const AddressToZip = {
-  /**
-   * 住所から郵便番号を取得
-   * @param {string} pref - 都道府県
-   * @param {string} city - 市区町村
-   * @param {string} town - 町域（任意）
-   * @returns {Promise<Object|null>}
-   */
-  async fetch(pref, city, town = "") {
-    try {
-      if (!pref || !city) {
-        throw new Error("都道府県と市区町村は必須です");
-      }
 
-      let url = `https://geoapi.heartrails.com/api/json?method=searchByAddress`
-              + `&prefecture=${encodeURIComponent(pref)}`
-              + `&city=${encodeURIComponent(city)}`;
+  async fetch(pref, city, town = "", candidates = []) {
 
-      if (town) {
-        url += `&town=${encodeURIComponent(town)}`;
-      }
+    console.log("AddressToZip入力:", {
+      pref,
+      city,
+      town
+    });
 
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTPエラー: ${res.status}`);
-
-      const data = await res.json();
-
-      if (!data.response || !data.response.location) {
-        return null;
-      }
-
-      return data.response.location.map(loc => ({
-        pref: loc.prefecture,
-        city: loc.city,
-        town: loc.town,
-        postal: loc.postal
-      }));
-
-    } catch (err) {
-      console.error("AddressToZip error:", err);
-      throw err;
+    // 候補なし
+    if (!Array.isArray(candidates) || candidates.length === 0) {
+      return null;
     }
+
+    // -----------------------------
+    // スコアリング
+    // -----------------------------
+    const scored = candidates.map(loc => {
+
+      let score = 0;
+
+      // 完全一致
+      if (loc.town === town) score += 100;
+
+      // 前方一致
+      else if (loc.town.startsWith(town)) score += 50;
+
+      // ビル減点
+      if (loc.town.includes("ビル")) score -= 30;
+
+      // 階数減点
+      if (/[0-9０-９]+階/.test(loc.town)) score -= 50;
+
+      return {
+        score,
+        data: loc
+      };
+    });
+
+    // 最大スコア採用
+    scored.sort((a, b) => b.score - a.score);
+
+    const best = scored[0]?.data;
+
+    console.log("採用郵便番号:", best);
+
+    if (!best) {
+      return null;
+    }
+
+    return {
+      pref: best.prefecture,
+      city: best.city,
+      town: best.town,
+      postal: best.postal
+    };
   }
 };

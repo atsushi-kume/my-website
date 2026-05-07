@@ -35,10 +35,13 @@ export const NormalizeAddress = {
     console.log("採用候補:", loc);
 
     return {
-      pref: loc.prefecture,
-      city: loc.city,
-      town: loc.town
-    };
+  pref: loc.prefecture,
+  city: loc.city,
+  town: loc.town,
+
+  // ←これ重要
+  candidates: list
+};
   }
 };
 

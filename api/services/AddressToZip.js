@@ -21,6 +21,8 @@ export const AddressToZip = {
         + `&prefecture=${encodeURIComponent(pref)}`
         + `&city=${encodeURIComponent(city)}`;
 
+console.log("URL:", url);
+
       if (town) {
         url += `&town=${encodeURIComponent(town)}`;
       }

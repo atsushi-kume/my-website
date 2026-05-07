@@ -7,26 +7,22 @@ export const GeoApi = {
 
     // 全角→半角
     if (typeof input === "string") {
-      input = input.replace(/[０-９]/g, s =>
-        String.fromCharCode(s.charCodeAt(0) - 0xFEE0)
-      );
-    }
+  const parsed = await NormalizeAddress.fetch(input);
 
-    // 郵便番号
-    if (typeof input === "string" && /^\d{3}-?\d{4}$/.test(input)) {
-      return await ZipToAddress.fetch(input);
-    }
+  console.log("正規化結果:", parsed);
 
-    // 住所（文字列 → 正規化API）
-    if (typeof input === "string") {
-      const parsed = await NormalizeAddress.fetch(input);
+  // ★ここ重要
+  if (parsed.postal) {
+    console.log("郵便番号を直接使用:", parsed.postal);
+    return parsed;  // ←そのまま返す
+  }
 
-      return await AddressToZip.fetch(
-        parsed.pref,
-        parsed.city,
-        parsed.town
-      );
-    }
+  return await AddressToZip.fetch(
+    parsed.pref,
+    parsed.city,
+    parsed.town
+  );
+}
 
     // object入力
     if (

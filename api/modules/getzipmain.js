@@ -56,17 +56,14 @@ export const GeoApi = {
 
     // ① 正規化
     const normalized =
-      await NormalizeAddress.fetch(input);
+    await NormalizeAddress.fetch(input);
 
-    console.log("正規化結果:", normalized);
-
-    // ② 郵便番号検索
-    const result =
-      await AddressToZip.fetch(
-        normalized.pref,
-        normalized.city,
-        normalized.town
-      );
+return await AddressToZip.fetch(
+    normalized.pref,
+    normalized.city,
+    normalized.town,
+    normalized.candidates
+);
 
     console.log("郵便番号検索結果:", result);
 

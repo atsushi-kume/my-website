@@ -10,7 +10,7 @@ export const AddressToZip = {
    * @returns {Promise<Object|null>}
    */
   async fetch(pref, city, town = "") {
-console.log("★★ AddressToZip.fetch START ★★");
+//console.log("★★ AddressToZip.fetch START ★★");
     try {
 
       if (!pref || !city) {

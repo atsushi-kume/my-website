@@ -1,4 +1,5 @@
 // addressToZip.js
+console.log("★★ AddressToZip.js LOADED ★★");
 export const AddressToZip = {
 
   /**
@@ -8,6 +9,7 @@ export const AddressToZip = {
    * @param {string} town
    * @returns {Promise<Object|null>}
    */
+console.log("★★ AddressToZip.fetch START ★★");
   async fetch(pref, city, town = "") {
 
     try {

@@ -25,7 +25,8 @@ export const AddressToZip = {
       if (town) {
         url += `&town=${encodeURIComponent(town)}`;
       }
-
+console.log("URL:", url);
+      
       const res = await fetch(url);
 
       if (!res.ok) {
@@ -62,8 +63,6 @@ export const AddressToZip = {
         result = locations[0];
         console.log("先頭候補採用:", result);
       }
-
-console.log("URL:", url);
 
       return {
         pref: result.prefecture,

@@ -2,6 +2,8 @@ import { ZipToAddress } from "../services/ZipToAddress.js";
 import { AddressToZip } from "../services/AddressToZip.js";
 import { NormalizeAddress } from "../services/normalizeAddress.js";
 
+console.log(AddressToZip);
+
 export const GeoApi = {
 
   async execute(input) {

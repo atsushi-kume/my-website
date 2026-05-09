@@ -1,32 +1,40 @@
 // addressToZip.js
-console.log("★★ AddressToZip.js LOADED ★★");
+
 export const AddressToZip = {
 
   /**
-   * 住所から郵便番号を取得
+   * 正規化済み住所から郵便番号取得
    * @param {string} pref
    * @param {string} city
    * @param {string} town
    * @returns {Promise<Object|null>}
    */
   async fetch(pref, city, town = "") {
-//console.log("★★ AddressToZip.fetch START ★★");
+
     try {
 
+      console.log("★★ AddressToZip.fetch START ★★");
+
+      //========================================================
+      // 必須チェック
+      //========================================================
       if (!pref || !city) {
         throw new Error("都道府県と市区町村は必須です");
       }
 
+      //========================================================
+      // URL生成
+      //========================================================
       let url =
-        `https://geoapi.heartrails.com/api/json?method=searchByAddress`
+        `https://geoapi.heartrails.com/api/json?method=getTowns`
         + `&prefecture=${encodeURIComponent(pref)}`
         + `&city=${encodeURIComponent(city)}`;
 
-      if (town) {
-        url += `&town=${encodeURIComponent(town)}`;
-      }
-console.log("URL:", url);
-      
+      console.log("URL:", url);
+
+      //========================================================
+      // API実行
+      //========================================================
       const res = await fetch(url);
 
       if (!res.ok) {
@@ -35,41 +43,57 @@ console.log("URL:", url);
 
       const data = await res.json();
 
-      // 配列取得
+      console.log("APIレスポンス:", data);
+
+      //========================================================
+      // town一覧取得
+      //========================================================
       const locations = data?.response?.location ?? [];
 
       console.log("候補一覧:", locations);
 
       if (locations.length === 0) {
+        console.log("候補0件");
         return null;
       }
 
-      // town指定時は完全一致優先
+      //========================================================
+      // town完全一致
+      //========================================================
       let result = null;
 
       if (town) {
 
         result = locations.find(loc =>
-          loc.prefecture === pref &&
-          loc.city === city &&
           loc.town === town
         );
 
         console.log("完全一致:", result);
       }
 
-      // 一致なしなら先頭採用
+      //========================================================
+      // fallback
+      //========================================================
       if (!result) {
+
+        console.log("完全一致なし → 先頭候補採用");
+
         result = locations[0];
-        console.log("先頭候補採用:", result);
       }
 
-      return {
-        pref: result.prefecture,
-        city: result.city,
+      //========================================================
+      // 返却
+      //========================================================
+      const returnData = {
+        pref: pref,
+        city: city,
         town: result.town,
         postal: result.postal
       };
+
+      console.log("返却値:", returnData);
+
+      return returnData;
 
     } catch (err) {
 

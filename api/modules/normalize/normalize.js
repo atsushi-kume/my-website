@@ -1,8 +1,14 @@
-export function normalize(data, type = null){
+import { detectType } from "./detectType.js";
+import { jsonParser } from "./jsonParser.js";
+import { csvParser } from "./csvParser.js";
 
-    const dataType = type || detectType(data);
+export function normalize(data, options = {}) {
 
-    switch(dataType){
+    const type =
+        options.type ??
+        detectType(data);
+
+    switch(type){
 
         case "json":
             return jsonParser(data);
@@ -10,13 +16,5 @@ export function normalize(data, type = null){
         case "csv":
             return csvParser(data);
 
-        case "fixed":
-            return fixedParser(data);
-
-        case "array":
-            return arrayParser(data);
-
-        default:
-            throw new Error("未対応形式");
     }
 }

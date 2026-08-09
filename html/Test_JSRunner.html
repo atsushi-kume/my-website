@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>JavaScript Runner</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 10px;
+    font-family: Arial, "Meiryo", sans-serif;
+    font-size: 14px;
+    background: #f5f5f5;
+}
+
+h1 {
+    margin: 0 0 10px 0;
+    font-size: 20px;
+}
+
+.section {
+    margin-bottom: 10px;
+    padding: 10px;
+    background: #ffffff;
+    border: 1px solid #cccccc;
+}
+
+.section-title {
+    margin-bottom: 6px;
+    font-weight: bold;
+}
+
+/* JS指定 */
+.js-path-row {
+    display: flex;
+    gap: 5px;
+}
+
+#jsPath {
+    flex: 1;
+    min-width: 0;
+}
+
+button {
+    padding: 4px 12px;
+    cursor: pointer;
+}
+
+/* 関数 */
+.function-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#functionSelect {
+    min-width: 250px;
+}
+
+/* 引数 */
+.argument-row {
+    display: grid;
+    grid-template-columns: 180px 180px 1fr;
+    gap: 6px;
+    margin-bottom: 6px;
+    align-items: center;
+}
+
+.argument-name {
+    font-weight: bold;
+}
+
+.argument-type {
+    width: 100%;
+}
+
+.argument-value {
+    width: 100%;
+}
+
+/* 実行 */
+.execute-area {
+    text-align: center;
+}
+
+#executeButton {
+    min-width: 120px;
+    font-size: 16px;
+}
+
+/* 結果 */
+#result {
+    width: 100%;
+    min-height: 150px;
+    padding: 8px;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    background: #111111;
+    color: #eeeeee;
+    border: 1px solid #333333;
+    font-family: Consolas, monospace;
+}
+
+/* Console */
+#console {
+    width: 100%;
+    height: 250px;
+    padding: 8px;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    background: #111111;
+    color: #eeeeee;
+    border: 1px solid #333333;
+    font-family: Consolas, monospace;
+}
+
+.console-log {
+    color: #eeeeee;
+}
+
+.console-info {
+    color: #eeeeee;
+}
+
+.console-warn {
+    color: #eeeeee;
+}
+
+.console-error {
+    color: #eeeeee;
+}
+
+/* 状態表示 */
+#status {
+    margin-top: 5px;
+    min-height: 18px;
+}
+
+.error {
+    color: #cc0000;
+}
+
+.success {
+    color: #008800;
+}
+
+@media (max-width: 700px) {
+    .argument-row {
+        grid-template-columns: 1fr;
+    }
+
+    .js-path-row {
+        flex-wrap: wrap;
+    }
+
+    .js-path-row button {
+        flex: 1;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<h1>JavaScript Runner</h1>
+
+<!-- =========================================================
+     1. JS指定
+========================================================= -->
+<div class="section">
+
+    <div class="section-title">
+        1. JavaScript
+    </div>
+
+    <div class="js-path-row">
+
+        <input
+            type="text"
+            id="jsPath"
+            placeholder="JavaScriptファイルのパスまたはURL"
+        >
+
+        <button id="loadJsButton">
+            読込
+        </button>
+
+        <button id="msFilePickerButton">
+            MS FilePicker
+        </button>
+
+        <button id="githubButton">
+            GitHub
+        </button>
+
+    </div>
+
+    <div id="status"></div>
+
+</div>
+
+
+<!-- =========================================================
+     関数選択
+========================================================= -->
+<div class="section">
+
+    <div class="section-title">
+        関数
+    </div>
+
+    <div class="function-row">
+
+        <select id="functionSelect">
+            <option value="">-- JSを読み込んでください --</option>
+        </select>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     2. 引数
+========================================================= -->
+<div class="section">
+
+    <div class="section-title">
+        2. 引数
+    </div>
+
+    <div id="argumentsArea">
+        <div>
+            JSの関数を読み込むと、ここに引数が表示されます。
+        </div>
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     3. 実行
+========================================================= -->
+<div class="section execute-area">
+
+    <button id="executeButton">
+        実行
+    </button>
+
+</div>
+
+
+<!-- =========================================================
+     4. 実行結果
+========================================================= -->
+<div class="section">
+
+    <div class="section-title">
+        4. 実行結果
+    </div>
+
+    <pre id="result"></pre>
+
+</div>
+
+
+<!-- =========================================================
+     5. Console
+========================================================= -->
+<div class="section">
+
+    <div class="section-title">
+        5. Console
+    </div>
+
+    <pre id="console"></pre>
+
+</div>
+
+
+<script type="module">
+
+/* =========================================================
+   状態
+========================================================= */
+
+let loadedModule = null;
+let functionList = [];
+
+
+/* =========================================================
+   DOM
+========================================================= */
+
+const jsPathInput       = document.getElementById("jsPath");
+const loadJsButton      = document.getElementById("loadJsButton");
+const msFilePickerButton = document.getElementById("msFilePickerButton");
+const githubButton      = document.getElementById("githubButton");
+
+const functionSelect = document.getElementById("functionSelect");
+const argumentsArea  = document.getElementById("argumentsArea");
+
+const executeButton = document.getElementById("executeButton");
+
+const resultArea = document.getElementById("result");
+const consoleArea = document.getElementById("console");
+const statusArea = document.getElementById("status");
+
+
+/* =========================================================
+   Logger
+========================================================= */
+
+const originalConsole = {
+    log: console.log,
+    info: console.info,
+    warn: console.warn,
+    error: console.error
+};
+
+
+function stringifyLogValue(value) {
+
+    if (typeof value === "string") {
+        return value;
+    }
+
+    if (value === undefined) {
+        return "undefined";
+    }
+
+    if (value === null) {
+        return "null";
+    }
+
+    try {
+        return JSON.stringify(value, null, 2);
+    } catch (e) {
+        return String(value);
+    }
+}
+
+
+function writeConsole(type, args) {
+
+    const line = document.createElement("div");
+
+    line.className = "console-" + type;
+
+    const text = Array.prototype.map.call(
+        args,
+        stringifyLogValue
+    ).join(" ");
+
+    line.textContent = text;
+
+    consoleArea.appendChild(line);
+
+    consoleArea.scrollTop = consoleArea.scrollHeight;
+}
+
+
+console.log = function () {
+    writeConsole("log", arguments);
+    originalConsole.log.apply(console, arguments);
+};
+
+console.info = function () {
+    writeConsole("info", arguments);
+    originalConsole.info.apply(console, arguments);
+};
+
+console.warn = function () {
+    writeConsole("warn", arguments);
+    originalConsole.warn.apply(console, arguments);
+};
+
+console.error = function () {
+    writeConsole("error", arguments);
+    originalConsole.error.apply(console, arguments);
+};
+
+
+/* =========================================================
+   status
+========================================================= */
+
+function setStatus(message, type) {
+
+    statusArea.textContent = message;
+
+    statusArea.className = "";
+
+    if (type) {
+        statusArea.classList.add(type);
+    }
+}
+
+
+/* =========================================================
+   JS URL変換
+========================================================= */
+
+function normalizeJsPath(path) {
+
+    path = path.trim();
+
+    if (!path) {
+        throw new Error("JSファイルのパスが入力されていません。");
+    }
+
+    /*
+     * http://
+     * https://
+     * file://
+     * blob:
+     *
+     * はそのまま使用。
+     */
+
+    if (
+        path.indexOf("http://") === 0 ||
+        path.indexOf("https://") === 0 ||
+        path.indexOf("file://") === 0 ||
+        path.indexOf("blob:") === 0
+    ) {
+        return path;
+    }
+
+    /*
+     * GitHub Pages等の相対パス
+     */
+
+    if (path.charAt(0) !== "/") {
+
+        try {
+            return new URL(
+                path,
+                window.location.href
+            ).href;
+
+        } catch (e) {
+        }
+    }
+
+    return path;
+}
+
+
+/* =========================================================
+   JS読み込み
+========================================================= */
+
+async function loadJavaScript(path) {
+
+    setStatus("JavaScriptを読み込んでいます...", "");
+
+    resultArea.textContent = "";
+
+    const url = normalizeJsPath(path);
+
+    console.log("JS Load:", url);
+
+    try {
+
+        /*
+         * import()
+         *
+         * ES Moduleとして読み込む。
+         */
+
+        loadedModule = await import(
+            url + (
+                url.indexOf("?") >= 0
+                    ? "&"
+                    : "?"
+            ) + "t=" + Date.now()
+        );
+
+        functionList = getExportedFunctions(
+            loadedModule
+        );
+
+        createFunctionSelect(
+            functionList
+        );
+
+        setStatus(
+            "読み込み完了",
+            "success"
+        );
+
+        console.log(
+            "Exported functions:",
+            functionList
+        );
+
+    } catch (error) {
+
+        loadedModule = null;
+        functionList = [];
+
+        functionSelect.innerHTML =
+            '<option value="">読み込み失敗</option>';
+
+        argumentsArea.innerHTML = "";
+
+        setStatus(
+            "読み込みエラー: " + error.message,
+            "error"
+        );
+
+        console.error(error);
+    }
+}
+
+
+/* =========================================================
+   export関数取得
+========================================================= */
+
+function getExportedFunctions(module) {
+
+    const names = [];
+
+    Object.keys(module).forEach(function (name) {
+
+        if (
+            typeof module[name] === "function"
+        ) {
+            names.push(name);
+        }
+
+    });
+
+    return names;
+}
+
+
+/* =========================================================
+   関数選択肢生成
+========================================================= */
+
+function createFunctionSelect(functions) {
+
+    functionSelect.innerHTML = "";
+
+    if (functions.length === 0) {
+
+        const option =
+            document.createElement("option");
+
+        option.value = "";
+        option.textContent =
+            "-- export関数がありません --";
+
+        functionSelect.appendChild(option);
+
+        argumentsArea.innerHTML =
+            "実行可能なexport関数がありません。";
+
+        return;
+    }
+
+    const first =
+        document.createElement("option");
+
+    first.value = "";
+    first.textContent =
+        "-- 関数を選択してください --";
+
+    functionSelect.appendChild(first);
+
+
+    functions.forEach(function (name) {
+
+        const option =
+            document.createElement("option");
+
+        option.value = name;
+        option.textContent = name;
+
+        functionSelect.appendChild(option);
+
+    });
+}
+
+
+/* =========================================================
+   関数の引数解析
+========================================================= */
+
+function getFunctionArguments(func) {
+
+    const source = func.toString();
+
+    let argsText = "";
+
+
+    /*
+     * function xxx(a,b)
+     */
+
+    let match = source.match(
+        /^[^(]*\(([^)]*)\)/
+    );
+
+    if (match) {
+
+        argsText = match[1];
+
+    } else {
+
+        /*
+         * arrow function
+         *
+         * a => ...
+         */
+
+        match = source.match(
+            /^\s*([^=()\s,]+)\s*=>/
+        );
+
+        if (match) {
+            argsText = match[1];
+        }
+
+    }
+
+
+    if (!argsText.trim()) {
+        return [];
+    }
+
+
+    return argsText
+        .split(",")
+        .map(function (arg) {
+
+            arg = arg.trim();
+
+            /*
+             * デフォルト値
+             *
+             * option = {}
+             */
+
+            const equalIndex =
+                arg.indexOf("=");
+
+            let name = arg;
+            let defaultValue = "";
+
+            if (equalIndex >= 0) {
+
+                name =
+                    arg.substring(
+                        0,
+                        equalIndex
+                    ).trim();
+
+                defaultValue =
+                    arg.substring(
+                        equalIndex + 1
+                    ).trim();
+
+            }
+
+            /*
+             * 初版ではデフォルト値は
+             * UIには表示しない。
+             */
+
+            return {
+                name: name,
+                defaultValue: defaultValue
+            };
+
+        });
+
+}
+
+
+/* =========================================================
+   関数選択時
+========================================================= */
+
+functionSelect.addEventListener(
+    "change",
+    function () {
+
+        const name =
+            functionSelect.value;
+
+        argumentsArea.innerHTML = "";
+
+        if (!name || !loadedModule) {
+            return;
+        }
+
+        const func =
+            loadedModule[name];
+
+        const args =
+            getFunctionArguments(func);
+
+        createArgumentInputs(args);
+
+    }
+);
+
+
+/* =========================================================
+   引数入力欄
+========================================================= */
+
+function createArgumentInputs(args) {
+
+    if (args.length === 0) {
+
+        argumentsArea.innerHTML =
+            "引数はありません。";
+
+        return;
+    }
+
+
+    args.forEach(function (arg, index) {
+
+        const row =
+            document.createElement("div");
+
+        row.className =
+            "argument-row";
+
+
+        /*
+         * 引数名
+         */
+
+        const name =
+            document.createElement("div");
+
+        name.className =
+            "argument-name";
+
+        name.textContent =
+            arg.name;
+
+        row.appendChild(name);
+
+
+        /*
+         * 種類
+         */
+
+        const type =
+            document.createElement("select");
+
+        type.className =
+            "argument-type";
+
+        type.innerHTML =
+
+            '<option value="file">ファイル</option>' +
+
+            '<option value="text">直接入力</option>' +
+
+            '<option value="array">直接入力（配列）</option>';
+
+        row.appendChild(type);
+
+
+        /*
+         * 値
+         */
+
+        const value =
+            document.createElement("input");
+
+        value.type = "text";
+
+        value.className =
+            "argument-value";
+
+        value.placeholder =
+            "値を入力";
+
+        row.appendChild(value);
+
+
+        /*
+         * 管理用属性
+         */
+
+        row.dataset.argumentName =
+            arg.name;
+
+        row.dataset.argumentIndex =
+            index;
+
+
+        argumentsArea.appendChild(row);
+
+    });
+
+}
+
+
+/* =========================================================
+   ファイル読み込み
+========================================================= */
+
+async function readFileContent(path) {
+
+    path = path.trim();
+
+    if (!path) {
+        throw new Error(
+            "ファイルパスが指定されていません。"
+        );
+    }
+
+
+    /*
+     * URLの場合
+     */
+
+    if (
+        path.indexOf("http://") === 0 ||
+        path.indexOf("https://") === 0
+    ) {
+
+        const response =
+            await fetch(path);
+
+        if (!response.ok) {
+
+            throw new Error(
+                "ファイル読み込み失敗: " +
+                response.status
+            );
+
+        }
+
+        return await response.text();
+
+    }
+
+
+    /*
+     * 初版のローカルパス。
+     *
+     * ブラウザ単体では
+     *
+     * C:\test\a.csv
+     *
+     * を直接fetchできない。
+     *
+     * MS FilePicker / File API対応時に
+     * ここを差し替える。
+     */
+
+    throw new Error(
+        "ローカルファイルの直接読み込みは、" +
+        "現在のブラウザ仕様では未対応です。" +
+        "\nFileオブジェクト対応版で実装します。"
+    );
+}
+
+
+/* =========================================================
+   引数取得
+========================================================= */
+
+async function buildArguments() {
+
+    const rows =
+        argumentsArea.querySelectorAll(
+            ".argument-row"
+        );
+
+    const args = [];
+
+
+    for (let i = 0; i < rows.length; i++) {
+
+        const row = rows[i];
+
+        const type =
+            row.querySelector(
+                ".argument-type"
+            ).value;
+
+        const value =
+            row.querySelector(
+                ".argument-value"
+            ).value;
+
+
+        let convertedValue;
+
+
+        switch (type) {
+
+            /*
+             * ファイル
+             */
+
+            case "file":
+
+                convertedValue =
+                    await readFileContent(value);
+
+                break;
+
+
+            /*
+             * 直接入力
+             */
+
+            case "text":
+
+                convertedValue =
+                    value;
+
+                break;
+
+
+            /*
+             * 配列
+             */
+
+            case "array":
+
+                convertedValue =
+                    value.split(",");
+
+                break;
+
+
+            default:
+
+                convertedValue =
+                    value;
+
+        }
+
+
+        args.push(convertedValue);
+
+    }
+
+
+    return args;
+}
+
+
+/* =========================================================
+   実行
+========================================================= */
+
+executeButton.addEventListener(
+    "click",
+    async function () {
+
+        resultArea.textContent = "";
+
+        if (!loadedModule) {
+
+            resultArea.textContent =
+                "JavaScriptが読み込まれていません。";
+
+            return;
+        }
+
+
+        const functionName =
+            functionSelect.value;
+
+        if (!functionName) {
+
+            resultArea.textContent =
+                "実行する関数を選択してください。";
+
+            return;
+        }
+
+
+        try {
+
+            setStatus(
+                "実行中...",
+                ""
+            );
+
+            console.log(
+                "Execute:",
+                functionName
+            );
+
+
+            /*
+             * 引数作成
+             */
+
+            const args =
+                await buildArguments();
+
+
+            console.log(
+                "Arguments:",
+                args
+            );
+
+
+            /*
+             * 関数取得
+             */
+
+            const func =
+                loadedModule[functionName];
+
+
+            if (
+                typeof func !== "function"
+            ) {
+
+                throw new Error(
+                    "関数が見つかりません: " +
+                    functionName
+                );
+
+            }
+
+
+            /*
+             * 実行
+             */
+
+            let result =
+                func.apply(
+                    null,
+                    args
+                );
+
+
+            /*
+             * Promise対応
+             */
+
+            if (
+                result &&
+                typeof result.then === "function"
+            ) {
+
+                result =
+                    await result;
+
+            }
+
+
+            /*
+             * 結果表示
+             */
+
+            displayResult(result);
+
+
+            setStatus(
+                "実行完了",
+                "success"
+            );
+
+            console.log(
+                "Result:",
+                result
+            );
+
+
+        } catch (error) {
+
+            resultArea.textContent =
+                error.stack ||
+                error.message ||
+                String(error);
+
+            setStatus(
+                "実行エラー",
+                "error"
+            );
+
+            console.error(error);
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   結果表示
+========================================================= */
+
+function displayResult(value) {
+
+    if (value === undefined) {
+
+        resultArea.textContent =
+            "undefined";
+
+        return;
+    }
+
+
+    if (value === null) {
+
+        resultArea.textContent =
+            "null";
+
+        return;
+    }
+
+
+    /*
+     * 配列
+     */
+
+    if (Array.isArray(value)) {
+
+        resultArea.textContent =
+            value.join(",");
+
+        return;
+    }
+
+
+    /*
+     * Object
+     */
+
+    if (typeof value === "object") {
+
+        try {
+
+            resultArea.textContent =
+                JSON.stringify(
+                    value,
+                    null,
+                    2
+                );
+
+        } catch (e) {
+
+            resultArea.textContent =
+                String(value);
+
+        }
+
+        return;
+    }
+
+
+    /*
+     * 文字列・数値・boolean等
+     */
+
+    resultArea.textContent =
+        String(value);
+}
+
+
+/* =========================================================
+   JS読込ボタン
+========================================================= */
+
+loadJsButton.addEventListener(
+    "click",
+    function () {
+
+        loadJavaScript(
+            jsPathInput.value
+        );
+
+    }
+);
+
+
+/* =========================================================
+   EnterでJS読込
+========================================================= */
+
+jsPathInput.addEventListener(
+    "keydown",
+    function (event) {
+
+        if (event.key === "Enter") {
+
+            loadJavaScript(
+                jsPathInput.value
+            );
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   MS FilePicker
+   ---------------------------------------------------------
+   暫定版：
+   input type=fileを利用してファイル名を取得。
+   将来Fileオブジェクトを直接使用する。
+========================================================= */
+
+msFilePickerButton.addEventListener(
+    "click",
+    function () {
+
+        const input =
+            document.createElement("input");
+
+        input.type = "file";
+
+        input.style.display = "none";
+
+        document.body.appendChild(input);
+
+
+        input.addEventListener(
+            "change",
+            function () {
+
+                if (
+                    !input.files ||
+                    input.files.length === 0
+                ) {
+                    return;
+                }
+
+
+                const file =
+                    input.files[0];
+
+
+                /*
+                 * 現在はファイル名のみ。
+                 *
+                 * 将来：
+                 *
+                 * file
+                 *
+                 * を保持して
+                 * File.text()等で使用する。
+                 */
+
+                jsPathInput.value =
+                    file.name;
+
+
+                console.log(
+                    "Selected file:",
+                    file.name
+                );
+
+
+                document.body.removeChild(
+                    input
+                );
+
+            }
+        );
+
+
+        input.click();
+
+    }
+);
+
+
+/* =========================================================
+   GitHub
+   ---------------------------------------------------------
+   暫定版：
+   入力欄へのURL入力を想定。
+========================================================= */
+
+githubButton.addEventListener(
+    "click",
+    function () {
+
+        /*
+         * GitHub Pickerは後で実装。
+         */
+
+        alert(
+            "GitHub Pickerは次の段階で実装します。\n\n" +
+            "暫定的にはGitHub上のJS URLを\n" +
+            "JSパス欄へ直接入力してください。"
+        );
+
+    }
+);
+
+
+/* =========================================================
+   初期化
+========================================================= */
+
+console.log(
+    "JavaScript Runner initialized."
+);
+
+</script>
+
+</body>
+</html>

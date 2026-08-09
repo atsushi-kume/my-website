@@ -1,9 +1,10 @@
 import { ZipToAddress } from "../services/ZipToAddress.js";
 import { AddressToZip } from "../services/AddressToZip.js";
 import { NormalizeAddress } from "../services/normalizeAddress.js";
-//import { getFormat } from "../lib/getdatainfo.js";
+import { getFormat } from "../lib/getdatainfo.js";
 
 console.log(AddressToZip);
+console.log("getFormat:", getFormat);
 
 export const GeoApi = {
 

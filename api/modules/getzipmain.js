@@ -49,8 +49,11 @@ export const GeoApi = {
 
       console.log("郵便番号入力として処理");
 
-console.log("データフォーマット:",getformat(ZipToAddress.fetch(input));
-      return await ZipToAddress.fetch(input);
+　　　　var returndata = await ZipToAddress.fetch(input);
+　　　　console.log("データフォーマット:",getformat(returndata);
+      return await returndata;
+      
+      //return await ZipToAddress.fetch(input);
     }
 
     // ========================================

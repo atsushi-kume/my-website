@@ -49,11 +49,11 @@ export const GeoApi = {
 
       console.log("郵便番号入力として処理");
 
-　　　　var returndata = await ZipToAddress.fetch(input);
-　　　　console.log("データフォーマット:",getformat(returndata);
-      return await returndata;
+　　　　//var returndata = await ZipToAddress.fetch(input);
+　　　　//console.log("データフォーマット:",getformat(returndata);
+      //return await returndata;
       
-      //return await ZipToAddress.fetch(input);
+      return await ZipToAddress.fetch(input);
     }
 
     // ========================================

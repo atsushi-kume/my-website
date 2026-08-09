@@ -50,7 +50,7 @@ export const GeoApi = {
       console.log("郵便番号入力として処理");
 
 　　　　//var returndata = await ZipToAddress.fetch(input);
-　　　　//console.log("データフォーマット:",getformat(returndata);
+　　　　//console.log("データフォーマット:",getFormat(returndata);
       //return await returndata;
       
       return await ZipToAddress.fetch(input);
@@ -73,7 +73,7 @@ return await AddressToZip.fetch(
 );
 
     console.log("郵便番号検索結果:", result);
-    //console.log("データフォーマット:",getformat(result);
+    //console.log("データフォーマット:",getFormat(result);
 
     return result;
   }

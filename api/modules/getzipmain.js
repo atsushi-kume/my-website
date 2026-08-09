@@ -73,7 +73,7 @@ return await AddressToZip.fetch(
 );
 
     console.log("郵便番号検索結果:", result);
-    console.log("データフォーマット:",getformat(result);
+    //console.log("データフォーマット:",getformat(result);
 
     return result;
   }

@@ -1,6 +1,7 @@
 import { ZipToAddress } from "../services/ZipToAddress.js";
 import { AddressToZip } from "../services/AddressToZip.js";
 import { NormalizeAddress } from "../services/normalizeAddress.js";
+import { getformat } from "../api/lib/getdatainfo.js";
 
 console.log(AddressToZip);
 
@@ -68,6 +69,7 @@ return await AddressToZip.fetch(
 );
 
     console.log("郵便番号検索結果:", result);
+    console.log("データフォーマット:",getformat(result);
 
     return result;
   }

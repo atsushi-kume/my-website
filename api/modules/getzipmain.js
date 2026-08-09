@@ -3,8 +3,8 @@ import { AddressToZip } from "../services/AddressToZip.js";
 import { NormalizeAddress } from "../services/normalizeAddress.js";
 import { getFormat } from "../lib/getdatainfo.js";
 
-console.log(AddressToZip);
 console.log("getFormat:", getFormat);
+console.log("AddressToZip:", AddressToZip);
 
 export const GeoApi = {
 
@@ -50,11 +50,12 @@ export const GeoApi = {
 
       console.log("郵便番号入力として処理");
 
-　　　　//var returndata = await ZipToAddress.fetch(input);
-　　　　//console.log("データフォーマット:",getFormat(returndata);
-      //return await returndata;
-      
-      return await ZipToAddress.fetch(input);
+      const returndata =
+        await ZipToAddress.fetch(input);
+
+      console.log("データフォーマット:", getFormat(returndata));
+
+      return returndata;
     }
 
     // ========================================
@@ -64,17 +65,19 @@ export const GeoApi = {
 
     // ① 正規化
     const normalized =
-    await NormalizeAddress.fetch(input);
+      await NormalizeAddress.fetch(input);
 
-return await AddressToZip.fetch(
-    normalized.pref,
-    normalized.city,
-    normalized.town,
-    normalized.candidates
-);
+    // ② 郵便番号検索
+    const result =
+      await AddressToZip.fetch(
+        normalized.pref,
+        normalized.city,
+        normalized.town,
+        normalized.candidates
+      );
 
     console.log("郵便番号検索結果:", result);
-    //console.log("データフォーマット:",getFormat(result);
+    console.log("データフォーマット:", getFormat(result));
 
     return result;
   }

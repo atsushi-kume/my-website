@@ -77,14 +77,15 @@ export const GeoApi = {
       );
 
 　　　// オブジェクトにステータス（判定）を追加する
-　　　　　result = {
+　　　　　let result2
+　　　　　result2 = {
           matchType: "完全一致",
           data: result
 　　　　　};
 
-    console.log("郵便番号検索結果:", result);
-    console.log("データフォーマット:", getFormat(result));
+    console.log("郵便番号検索結果:", result2);
+    console.log("データフォーマット:", getFormat(result2));
 
-    return result;
+    return result2;
   }
 };

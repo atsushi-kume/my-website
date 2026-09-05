@@ -76,6 +76,12 @@ export const GeoApi = {
         normalized.candidates
       );
 
+　　　// オブジェクトにステータス（判定）を追加する
+　　　　　result = {
+          matchType: "完全一致",
+          data: result
+　　　　　};
+
     console.log("郵便番号検索結果:", result);
     console.log("データフォーマット:", getFormat(result));
 

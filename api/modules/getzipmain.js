@@ -79,6 +79,6 @@ export const GeoApi = {
     console.log("郵便番号検索結果:", result);
     console.log("データフォーマット:", getFormat(result));
 
-    return “完全一致” + result;
+    return result;
   }
 };

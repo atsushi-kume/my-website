@@ -77,8 +77,7 @@ export const GeoApi = {
       );
 
 　　　// オブジェクトにステータス（判定）を追加する
-　　　　　let result2
-　　　　　result2 = {
+　　　　　let result2 = {
           matchType: "完全一致",
           data: result
 　　　　　};

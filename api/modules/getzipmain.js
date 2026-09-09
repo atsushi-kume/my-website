@@ -53,9 +53,16 @@ export const GeoApi = {
       const returndata =
         await ZipToAddress.fetch(input);
 
-      console.log("データフォーマット:", getFormat(returndata));
+      // オブジェクトにステータス（判定）を追加する
+　　　　　let resultbyZip = {
+          matchType: "完全一致",
+          data: returndata
+　　　　　};
 
-      return returndata;
+
+      console.log("データフォーマット:", getFormat(resultbyZip));
+
+      return resultbyZip;
     }
 
     // ========================================
@@ -77,14 +84,14 @@ export const GeoApi = {
       );
 
 　　　// オブジェクトにステータス（判定）を追加する
-　　　　　let result2 = {
+　　　　　let resultbyAddress = {
           matchType: "完全一致",
           data: result
 　　　　　};
 
-    console.log("郵便番号検索結果:", result2);
-    console.log("データフォーマット:", getFormat(result2));
+    console.log("郵便番号検索結果:", resultbyAddress);
+    console.log("データフォーマット:", getFormat(resultbyAddress));
 
-    return result2;
+    return resultbyAddress;
   }
 };

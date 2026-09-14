@@ -1,6 +1,8 @@
 import { ZipToAddress } from "../services/ZipToAddress.js";
 import { AddressToZip } from "../services/AddressToZip.js";
-import { NormalizeAddress } from "../services/normalizeAddress.js";
+//import { NormalizeAddress } from "../services/normalizeAddress.js";
+import { NormalizeAddress } from "../lib/NormalizeAddress.js";
+import { GeoAddressMatcher } from "../lib/GeoAddressMatcher.js";
 import { getFormat } from "../lib/getdatainfo.js";
 
 console.log("getFormat:", getFormat);

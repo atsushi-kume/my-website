@@ -1,39 +1,65 @@
 // /api/lib/NormalizeAddress.js
 
 /**
- * 住所文字列の正規化専用モジュール
+ * 住所文字列の正規化・構造化モジュール
  *
  * 担当:
- *   - 全角数字の半角化
- *   - ハイフン類の統一
+ *   - 入力文字列の基本正規化
  *   - HeartRails suggest APIによる住所候補取得
  *   - 都道府県・市区町村・町名の抽出
+ *   - 町名と町名以降の付加部分の分離
  *
  * 非担当:
  *   - 郵便番号検索
  *   - 完全一致判定
  *   - 部分一致判定
  *   - 郵便番号APIの呼び出し
+ *
+ * 返却形式:
+ *
+ * {
+ *   pref: "東京都",
+ *   city: "千代田区",
+ *
+ *   town: {
+ *     name: "大手町",
+ *     include: "2丁目"
+ *   },
+ *
+ *   postal: "",
+ *
+ *   candidates: [...]
+ * }
  */
+
 
 const NormalizeAddress = {
 
   /**
-   * 住所を正規化する
+   * 住所を正規化・構造化する
    *
    * @param {string} input
    * @returns {Promise<Object>}
    */
   async fetch(input) {
 
+    // ----------------------------------------
+    // 入力チェック
+    // ----------------------------------------
     if (input == null) {
       throw new Error("住所入力値がありません");
     }
 
+    // ----------------------------------------
+    // 文字列化
+    // ----------------------------------------
     if (typeof input !== "string") {
       input = String(input);
     }
 
+    // ----------------------------------------
+    // 基本正規化
+    // ----------------------------------------
     const normalizedInput =
       this.normalizeText(input);
 
@@ -46,14 +72,39 @@ const NormalizeAddress = {
       normalizedInput
     );
 
+    // ----------------------------------------
+    // 数字・番地以降を除いた検索用住所を作成
+    //
+    // 例:
+    // 東京都千代田区大手町2丁目3番4号
+    // ↓
+    // 東京都千代田区大手町
+    //
+    // ただし「2丁目」のような町名に含まれる
+    // 丁目情報は、後でtown.includeとして扱う。
+    // ----------------------------------------
+    const searchInput =
+      this.createSearchInput(normalizedInput);
+
+    console.log(
+      "NormalizeAddress API検索値:",
+      searchInput
+    );
+
+    // ----------------------------------------
+    // HeartRails suggest API
+    // ----------------------------------------
     const candidates =
-      await this.fetchCandidates(normalizedInput);
+      await this.fetchCandidates(searchInput);
 
     console.log(
       "NormalizeAddress 候補:",
       candidates
     );
 
+    // ----------------------------------------
+    // 住所構造化
+    // ----------------------------------------
     const address =
       this.extractAddress(
         normalizedInput,
@@ -69,12 +120,15 @@ const NormalizeAddress = {
       ...address,
       candidates
     };
-
   },
 
 
+  // ==================================================
+  // 基本文字列正規化
+  // ==================================================
+
   /**
-   * 文字列の基本的な正規化
+   * 全角数字・ハイフン・空白などを統一
    *
    * @param {string} value
    * @returns {string}
@@ -91,17 +145,51 @@ const NormalizeAddress = {
         )
       )
 
-      // ハイフン類を半角ハイフンに統一
-      .replace(/[―ー－‐‑−]/g, "-")
+      // ハイフン類を半角ハイフンへ
+      .replace(/[―ー－‐-−]/g, "-")
 
       // 全角スペース → 半角スペース
       .replace(/　/g, " ")
 
-      // 連続スペースを1つにする
+      // 連続空白を1個に
       .replace(/\s+/g, " ");
-
   },
 
+
+  // ==================================================
+  // API検索用住所作成
+  // ==================================================
+
+  /**
+   * API検索用の住所を作成する
+   *
+   * 数字・ハイフン以降を削除する。
+   *
+   * 例:
+   *
+   * 東京都千代田区大手町2丁目3番4号
+   * ↓
+   * 東京都千代田区大手町
+   *
+   * 東京都千代田区大手町2丁目
+   * ↓
+   * 東京都千代田区大手町
+   *
+   * @param {string} input
+   * @returns {string}
+   */
+  createSearchInput(input) {
+
+    return input.replace(
+      /[0-9\-].*$/,
+      ""
+    ).trim();
+  },
+
+
+  // ==================================================
+  // HeartRails API
+  // ==================================================
 
   /**
    * HeartRails suggest APIから住所候補を取得
@@ -140,12 +228,15 @@ const NormalizeAddress = {
     );
 
     return data?.response?.location ?? [];
-
   },
 
 
+  // ==================================================
+  // 住所構造化
+  // ==================================================
+
   /**
-   * API候補から住所を抽出
+   * API候補から住所を構造化する
    *
    * @param {string} input
    * @param {Array} candidates
@@ -153,12 +244,18 @@ const NormalizeAddress = {
    */
   extractAddress(input, candidates) {
 
+    // ----------------------------------------
+    // API候補が存在する場合
+    // ----------------------------------------
     if (
       Array.isArray(candidates) &&
       candidates.length > 0
     ) {
 
-      // まず入力文字列に最も近い候補を探す
+      // ----------------------------------------
+      // 都道府県・市区町村・町名が
+      // 入力と一致する候補を探す
+      // ----------------------------------------
       const matched =
         candidates.find(candidate =>
           this.isCandidateMatch(
@@ -170,6 +267,15 @@ const NormalizeAddress = {
       const result =
         matched ?? candidates[0];
 
+      // ----------------------------------------
+      // 入力文字列からtown.includeを取得
+      // ----------------------------------------
+      const town =
+        this.extractTownParts(
+          input,
+          result
+        );
+
       return {
         pref:
           result.prefecture ??
@@ -180,26 +286,33 @@ const NormalizeAddress = {
           result.city ??
           "",
 
-        town:
-          result.town ??
-          "",
+        town,
 
         postal:
           result.postal ??
           ""
       };
-
     }
 
-
-    // API候補がない場合の簡易抽出
+    // ----------------------------------------
+    // API候補がない場合
+    // ----------------------------------------
     return this.extractByText(input);
-
   },
 
 
+  // ==================================================
+  // API候補との照合
+  // ==================================================
+
   /**
-   * API候補と入力値の関連性を簡易判定
+   * API候補と入力住所が対応しているか判定
+   *
+   * ここでは「完全一致」「部分一致」の
+   * 判定は行わない。
+   *
+   * あくまでNormalizeAddressが
+   * 住所の基準候補を取得するための判定。
    *
    * @param {string} input
    * @param {Object} candidate
@@ -220,26 +333,103 @@ const NormalizeAddress = {
       candidate.town ??
       "";
 
-    const joined =
-      `${pref}${city}${town}`;
+    if (
+      pref === "" ||
+      city === "" ||
+      town === ""
+    ) {
+      return false;
+    }
 
     return (
       input.includes(pref) &&
       input.includes(city) &&
-      (
-        input.includes(town) ||
-        joined.includes(input)
-      )
+      input.includes(town)
     );
-
   },
 
 
+  // ==================================================
+  // 町名分解
+  // ==================================================
+
   /**
-   * API候補が取得できなかった場合の簡易抽出
+   * 町名を
    *
-   * 都道府県と市区町村の抽出を優先する。
-   * 町名は残りの文字列から推定する。
+   *   name
+   *   include
+   *
+   * に分離する。
+   *
+   * 例:
+   *
+   * 入力:
+   *   東京都千代田区大手町2丁目
+   *
+   * API候補:
+   *   大手町
+   *
+   * 結果:
+   *
+   * {
+   *   name: "大手町",
+   *   include: "2丁目"
+   * }
+   *
+   * @param {string} input
+   * @param {Object} candidate
+   * @returns {Object}
+   */
+  extractTownParts(input, candidate) {
+
+    const townName =
+      candidate.town ??
+      "";
+
+    if (townName === "") {
+      return {
+        name: "",
+        include: ""
+      };
+    }
+
+    // ----------------------------------------
+    // 入力中からAPIが返した町名を探す
+    // ----------------------------------------
+    const index =
+      input.indexOf(townName);
+
+    if (index === -1) {
+
+      return {
+        name: townName,
+        include: ""
+      };
+    }
+
+    // ----------------------------------------
+    // 町名の直後を取得
+    // ----------------------------------------
+    const include =
+      input
+        .slice(index + townName.length)
+        .trim();
+
+    return {
+      name: townName,
+      include
+    };
+  },
+
+
+  // ==================================================
+  // APIが使えなかった場合の住所解析
+  // ==================================================
+
+  /**
+   * API候補が取得できなかった場合、
+   * 入力文字列から都道府県・市区町村・町名を
+   * 可能な範囲で抽出する。
    *
    * @param {string} input
    * @returns {Object}
@@ -303,16 +493,25 @@ const NormalizeAddress = {
       "沖縄県"
     ];
 
+    // ----------------------------------------
+    // 都道府県
+    // ----------------------------------------
     const pref =
       prefectures.find(value =>
         input.startsWith(value)
       ) ?? "";
 
+    // ----------------------------------------
+    // 都道府県以降
+    // ----------------------------------------
     const afterPref =
       pref !== ""
         ? input.slice(pref.length)
         : input;
 
+    // ----------------------------------------
+    // 市区町村
+    // ----------------------------------------
     const cityMatch =
       afterPref.match(
         /^(.+?[市区町村])/
@@ -323,18 +522,59 @@ const NormalizeAddress = {
         ? cityMatch[1]
         : "";
 
-    const town =
+    // ----------------------------------------
+    // 市区町村以降
+    // ----------------------------------------
+    const afterCity =
       city !== ""
         ? afterPref.slice(city.length)
         : afterPref;
 
+    // ----------------------------------------
+    // 町名とincludeを分離
+    //
+    // 数字が出てきたところから
+    // includeとする。
+    // ----------------------------------------
+    const townMatch =
+      afterCity.match(
+        /^([^0-9]+?)([0-9].*)$/
+      );
+
+    if (townMatch) {
+
+      return {
+        pref,
+        city,
+
+        town: {
+          name:
+            townMatch[1].trim(),
+
+          include:
+            townMatch[2].trim()
+        },
+
+        postal: ""
+      };
+    }
+
+    // ----------------------------------------
+    // 数字がない場合
+    // ----------------------------------------
     return {
       pref,
       city,
-      town,
+
+      town: {
+        name:
+          afterCity.trim(),
+
+        include: ""
+      },
+
       postal: ""
     };
-
   }
 
 };

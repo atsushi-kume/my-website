@@ -27,3 +27,21 @@ export function toRows(records, headers) {
     }
     return rows;
 }
+
+//===========================================================
+// レコード配列 → タグ付き2次元配列（オブジェクト配列）
+//===========================================================
+export function setdatatag(records, headers) {
+
+    const data = records.map(row => {
+        const obj = {};
+
+        headers.forEach((tag, index) => {
+            obj[tag] = row[index];
+        });
+
+        return obj;
+    });
+
+    return data;
+}
